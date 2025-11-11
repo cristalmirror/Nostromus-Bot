@@ -29,3 +29,22 @@ inline std::mutex &db_mutex() {
   return m;
 }
 
+inline std::string to_hex() {
+    std::ostringstream oss;
+    for(unsigned char b : data) {
+        oss << std::hex << std::setw(2) << std::setfill('0') << (int)b;
+    }
+    return oss.str();
+}
+
+inline std::vector<unsigned char> sha256_bytes(const std::string &s) {
+    std::vector<unsigned char> out(SHA256_DIGEST_LENGTH);
+    SHA256(reinterpret_cast<const unsigned char*>(s.data()), s.size(), out.data());
+    return out;
+ 
+}
+
+inline std::string random_salt(size_t){
+ 
+}
+
