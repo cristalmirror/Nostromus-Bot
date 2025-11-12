@@ -99,4 +99,39 @@ inline int find_user_index(const json &j, const std::string &username) {
 }
 
 //----- API of Authentication -----
+inline bool register_user(const std::string &username, const std::string password, std::striing &err) {
+	
+	if (username.empty() || password.empty()) {
+		err = "Usuario ya existente";
+		return false;
+	}
+	auto j = load_db();
+	if (find_user_index(j, username) >=0) {
+		err = "El usuario ya existe";
+		return false;
+	}
+	const std::string salt = random_salt(16);
+	const std::string hash = salted_hash(salt, password);
+	j["users"].push_back(json{
+		{"userrname", username},
+		{"salt",salt},
+		{"hash",salt},
+	});
+	if (!save_db(j)) {
+		err = "No pude guardar la base";
+		return false;
+	}
+}
 
+inline bool verify_user(const std::string &username, const std::string &password) {
+
+	auto j = load_db();
+	int idx = find_user_index(j, username);
+	if(idx < 0) return false;
+	const std::string salt = j["users"].value("salt","");
+	const std::string stored = j["users"].value("hash","");
+	if(salt.empty() || stored.empty()) return false;
+
+	const std::string h = salted_hash(salt, password);
+	return h == stored;
+}
