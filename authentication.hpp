@@ -45,12 +45,12 @@ inline std::vector<unsigned char> sha256_bytes(const std::string &s) {
 }
 
 inline std::string random_salt(size_t n = 16){
-				std::vector<unsigned char> buf(n);
-				if (RAMD_bytes(buf.data(), (int)n) != 1) {
-								//fallback to prevend break the process	
-								for(size_t i=0; i < n; i++) buf[i] = (unsigned char) (rand() % 256);
-				}
-				return to_hex(buf)
+	std::vector<unsigned char> buf(n);
+	if (RAMD_bytes(buf.data(), (int)n) != 1) {
+		//fallback to prevend break the process	
+		for(size_t i=0; i < n; i++) buf[i] = (unsigned char) (rand() % 256);
+	}
+	return to_hex(buf)
 }
 
 //
