@@ -53,8 +53,44 @@ inline std::string random_salt(size_t n = 16){
 	return to_hex(buf)
 }
 
-//
-inline std::string salted_hash(const) {
-	
+//return hash hex of SHA256(salt + password)
+inline std::string salted_hash(const std::string &salt_hex, const ) {
+	//concat salt(hex) in text type + password (simple option)
+	auto h = sha256_bytes(salt_hex + pass);
+	return to_hex(h);
 }
 
+//-----Upload/Save JSON-----
+inline json load_db() {
+	std::lockguard<std::mutex> lk(db_mutex());
+	fs::create_dorectories(DB_PATH.parent_path());
+	if(!fs::exits(DB_PATH)) {
+		json j = json::object();
+		j¨["users"] = json::array();
+		std::ofstream out(DB_PATH);
+		out << j.dump(2);
+		return j;
+	}
+	std::ifstream in(DB_PATH);
+	if (!in) return json{{"user", json::array()}};
+	json j;
+	in >> j;
+	if (!j.contains("users") || !j["users"].is_array()) {
+		j["users"] = json::array();
+	}
+	return j;	
+}
+
+inline bool save_db(const json &j) {
+	std::lock_guard<std::mutex> lk(db_mutex());
+	std::ofstream out(DB_PATH);
+	if (!out) return false;
+	out << j.dump(2);
+	return true;
+} 
+
+//helper for find user
+inline int find_user_index(const json &j, const std::string &username) {
+	const auto &arr = j.at("users");
+	
+}
