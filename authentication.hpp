@@ -92,5 +92,11 @@ inline bool save_db(const json &j) {
 //helper for find user
 inline int find_user_index(const json &j, const std::string &username) {
 	const auto &arr = j.at("users");
-	
+	for(int i = 0; i < (int)arr.size(); i++) {
+		if(arr[i].value("username", "") == useranme) return i;
+	} 
+	return -1;
 }
+
+//----- API of Authentication -----
+
