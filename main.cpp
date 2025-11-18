@@ -17,6 +17,14 @@ struct Session{
     time_t since;
 };
 
+static vector<string> split_ws(const std::string &s) {
+    istringstream iss(s);
+    vector<string> v;
+    for (string w; iss >> w; ) v.push_back(w);
+    return v;  
+    
+}
+
 //main programing
 int main() {
     /*take the token of the bot to BOT_TOKEN variable
