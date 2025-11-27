@@ -2,7 +2,7 @@
  now we use the JSON archive to make a database in this proyect*/
 
 #pragma once
-#include <nloahamnn/json.hpp>
+#include <nlohmann/json.hpp>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <filesystem>
@@ -29,7 +29,7 @@ inline std::mutex &db_mutex() {
   return m;
 }
 
-inline std::string to_hex() {
+inline std::string to_hex(const std::vector<unsigned char> & data) {
     std::ostringstream oss;
     for(unsigned char b : data) {
         oss << std::hex << std::setw(2) << std::setfill('0') << (int)b;
@@ -46,15 +46,15 @@ inline std::vector<unsigned char> sha256_bytes(const std::string &s) {
 
 inline std::string random_salt(size_t n = 16){
 	std::vector<unsigned char> buf(n);
-	if (RAMD_bytes(buf.data(), (int)n) != 1) {
+	if (RAND_bytes(buf.data(), (int)n) != 1) {
 		//fallback to prevend break the process	
 		for(size_t i=0; i < n; i++) buf[i] = (unsigned char) (rand() % 256);
 	}
-	return to_hex(buf)
+	return to_hex(buf);
 }
 
 //return hash hex of SHA256(salt + password)
-inline std::string salted_hash(const std::string &salt_hex, const ) {
+inline std::string salted_hash(const std::string &salt_hex, const std::string &pass) {
 	//concat salt(hex) in text type + password (simple option)
 	auto h = sha256_bytes(salt_hex + pass);
 	return to_hex(h);
@@ -62,11 +62,11 @@ inline std::string salted_hash(const std::string &salt_hex, const ) {
 
 //-----Upload/Save JSON-----
 inline json load_db() {
-	std::lockguard<std::mutex> lk(db_mutex());
-	fs::create_dorectories(DB_PATH.parent_path());
-	if(!fs::exits(DB_PATH)) {
+	std::lock_guard<std::mutex> lk(db_mutex());
+	fs::create_directories(DB_PATH.parent_path());
+	if(!fs::exists(DB_PATH)) {
 		json j = json::object();
-		j¨["users"] = json::array();
+		j["users"] = json::array();
 		std::ofstream out(DB_PATH);
 		out << j.dump(2);
 		return j;
@@ -93,13 +93,13 @@ inline bool save_db(const json &j) {
 inline int find_user_index(const json &j, const std::string &username) {
 	const auto &arr = j.at("users");
 	for(int i = 0; i < (int)arr.size(); i++) {
-		if(arr[i].value("username", "") == useranme) return i;
+		if(arr[i].value("username", "") == username) return i;
 	} 
 	return -1;
 }
 
 //----- API of Authentication -----
-inline bool register_user(const std::string &username, const std::string password, std::striing &err) {
+inline bool register_user(const std::string &username, const std::string password, std::string &err) {
 	
 	if (username.empty() || password.empty()) {
 		err = "Usuario ya existente";
@@ -113,7 +113,7 @@ inline bool register_user(const std::string &username, const std::string passwor
 	const std::string salt = random_salt(16);
 	const std::string hash = salted_hash(salt, password);
 	j["users"].push_back(json{
-		{"userrname", username},
+		{"username", username},
 		{"salt",salt},
 		{"hash",salt},
 	});
@@ -121,6 +121,7 @@ inline bool register_user(const std::string &username, const std::string passwor
 		err = "No pude guardar la base";
 		return false;
 	}
+    return true;
 }
 
 inline bool verify_user(const std::string &username, const std::string &password) {

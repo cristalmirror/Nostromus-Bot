@@ -81,8 +81,8 @@ int main() {
         
         bot.getApi().sendMessage(msg->chat->id,           //chatId
                                  "Bienvenido!!. Para usar el bot, inicia sesion: \n"
-				 "`/register <@usre> <pass>`\n"
-				 "`/login <@user> <contraseña>`\n"
+                                 "`/register <@usre> <pass>`\n"
+                                 "`/login <@user> <contraseña>`\n"
                                  "`/upload` - subir archivos\n"
                                  "`/start` - presenta el bot\n", //text
                                  lpo,                     //linkPreviewOptions
