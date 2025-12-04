@@ -12,6 +12,7 @@
 #include "authentication.hpp"
 #include "downloads_manager.hpp"
 
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -26,6 +27,8 @@ static vector<string> split_ws(const std::string &s) {
     return v;  
     
 }
+
+  
 
 //main programing
 int main() {
@@ -60,7 +63,7 @@ int main() {
         }
         return true;
     };
-
+    
     //check if the user need authentication
     auto require_auth = [&](auto protected_handler) {
         return [&](TgBot::Message::Ptr msg) {
@@ -120,7 +123,9 @@ int main() {
     bot.getEvents().onCommand("login", [&](TgBot::Message::Ptr msg) {
         if (!msg || !msg->from) return;
 
-        //extract the next to "/login "
+        /*last part of the code that has been remplace
+
+	  extract the next to "/login "
         string input;
         const string &t = msg->text;
         if (t.size() > 7) input = t.substr(7);
@@ -130,7 +135,22 @@ int main() {
         while (!input.empty() && isspace(static_cast<unsigned char>(input.back()))) input.pop_back();
 
         bool ok = (input == PASSWORD);
+	*/
+    
+    //this is the new part 
+	auto args = split_ws(msg->text);
 
+	if (args.size() < 3) {
+	    bot.getApi().sendMessage(msg->chat->id,"Uso: `/login <@user> <contrasenia>`");
+	    return;
+	}
+
+	const string user = args[1];
+	const string pass = args[2];
+
+	bool ok = verify_user(user, pass);
+	
+	
         //optional: delete the message with the pass
         try{
             bot.getApi().deleteMessage(msg->chat->id,msg->messageId);

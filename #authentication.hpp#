@@ -102,7 +102,7 @@ inline int find_user_index(const json &j, const std::string &username) {
 inline bool register_user(const std::string &username, const std::string password, std::string &err) {
 	
 	if (username.empty() || password.empty()) {
-		err = "Usuario ya existente";
+        err = "Usuario ya existente";
 		return false;
 	}
 	auto j = load_db();
@@ -129,8 +129,8 @@ inline bool verify_user(const std::string &username, const std::string &password
 	auto j = load_db();
 	int idx = find_user_index(j, username);
 	if(idx < 0) return false;
-	const std::string salt = j["users"][idx].value("salt","");
-	const std::string stored = j["users"][idx].value("hash","");
+	const std::string salt = j["users"].value("salt","");
+	const std::string stored = j["users"].value("hash","");
 	if(salt.empty() || stored.empty()) return false;
 
 	const std::string h = salted_hash(salt, password);
