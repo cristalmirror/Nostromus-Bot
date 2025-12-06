@@ -9,6 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
+ORANGE='\033[38;5;208m'
 
 echo -e "${YELLOW}[INFO] Iniciando configuracion del Bot en C++... ${NC}"
 
@@ -56,9 +57,10 @@ cd tgbot-cpp
 
 echo -e "${RED}[INFO] Paso 5 >> Compilando tgbot-cpp...${NC}"
 cmake .
+echo -e "${RED}[INFO] Paso 6 >> Armando tgbot-cpp...${NC}"
 make -j$(nproc) # Usa todos los núcleos del CPU para compilar rápido
 
-echo -e "${RED}[INFO] Paso 6 >> Instalando librería en el sistema...${NC}"
+echo -e "${RED}[INFO] Paso 7 >> Instalando librería en el sistema...${NC}"
 sudo make install
 
 # 5. Paso Crítico: Actualizar el cache de librerías (ldconfig)
@@ -70,9 +72,9 @@ sudo ldconfig
 cd ~
 rm -rf "$TEMP_DIR"
 
-echo -e "============================================================"
+echo -e "${ORANGE}============================================================"
 echo -e "${GREEN}[OK]¡INSTALACIÓN COMPLETADA EXITOSAMENTE!${NC}"
 echo -e "${YELLOW}[INFO] Ahora puedes ir a la carpeta de tu bot y ejecutar:${NC}"
-echo -e "[OK]  cmake${NC}"
-echo -e "[OK]  make${NC}"
-echo -e "============================================================"
+echo -e "${ORANGE}[OK]  cmake${NC}"
+echo -e "${ORANGE}[OK]  make${NC}"
+echo -e "${ORANGE}============================================================"
