@@ -3,7 +3,10 @@
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+#include <thread>
+
 namespace fs = std::filesystem;
+
 //libcurl callback to write archives
 inline size_t write_to_file(void *ptr, size_t size, size_t nmemb, void *stream) {
 
@@ -41,4 +44,33 @@ inline bool download_with_curl(const std::string &url, const fs::path &destPath)
     return (res == CURLE_OK);
     
     
+}
+
+inline void start_threaded_download(const std::string url,
+                                    const fs::path destPath) {
+  std::thread t([url, destPath]() {
+    std::string orange = "\033[38;5;208m";
+    std::string red = "\033[0;31m";
+    std::string green = "\033[0;32m";
+    std::string nc = "\033[0m";
+      
+    std::cout << orange <<"××××××××××××××××××××××××××××××××××"<< nc << std::endl;
+    std::cout << orange << "[THREAD] Descarga en segundo plano." <<std::endl << destPath.filename() << nc << std::endl;
+  
+    bool ok = download_with_curl(url, destPath);
+  
+    if (ok) {
+      std::cout << green << "=============================" << nc << std::endl;
+      std::cout << green << "[THREAD] Inciando la descarga" << nc << std::endl;
+      std::cout << green << "=============================" << nc << std::endl;
+    } else {
+      std::cout << red << "==========================" << nc << std::endl;
+      std::cerr << red << "[THREAD] La descarga fallo" << nc << std::endl;
+      std::cout << red << "==========================" << nc << std::endl;
+    }
+    std::cout << orange << "××××××××××××××××××××××××××××××××××" << nc << std::endl;
+  });
+
+  // librera el hilo de ejecucion
+  t.detach();
 }

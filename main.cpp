@@ -246,10 +246,11 @@ int main() {
                 dest = uploadsDir / (prefix + "_" + fs::path(f->filePath).filename().string());
             }
 
-            const bool ok =download_with_curl(url, dest);
-            bot.getApi().sendMessage(msg->chat->id,
-                                     ok ? ("Guardado en: " + dest.string()) : "No se pudo guardar el archivo"
-                                     );
+            start_threaded_download(url, dest); // Usamos downloads:: si está en namespace, si no, solo el nombre
+
+        // Respondemos INMEDIATAMENTE al usuario, sin esperar la descarga
+        bot.getApi().sendMessage(msg->chat->id, 
+                                     "🚀 Descarga iniciada en segundo plano. Puedo seguir recibiendo comandos.");
         };
 
         try {
