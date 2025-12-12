@@ -16,6 +16,13 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+struct colorString {
+  string orange = "\033[38;5;208m";
+  string red = "\033[0;31m";
+  string green = "\033[0;32m";
+  string nc = "\033[0m";
+};
+
 struct Session{
     time_t since;
 };
@@ -31,7 +38,7 @@ static vector<string> split_ws(const std::string &s) {
   
 
 //main programing
-int main() {
+int main(int argc,char *argv[]) {
     /*take the token of the bot to BOT_TOKEN variable
      but isn't define using the last string in hardcoding */ 
     string token = getenv("BOT_TOKEN") ? getenv("BOT_TOKEN") : "8035986148:AAFq1DEEMThtlia_MTfan61SS9WyRIZcRCg";
@@ -45,7 +52,7 @@ int main() {
     unordered_map<int64_t,int> failed_attempts;
     unordered_map<int64_t, bool> waiting_archive;
     const fs::path uploadsDir = "./uploads";
-
+    
     //TTL expiration
     const int SESSION_TTL_SEC = 3600;
     //system time consult
@@ -103,6 +110,8 @@ int main() {
     bot.getEvents().onCommand("register", [&bot](TgBot::Message::Ptr msg) {
         auto args = split_ws(msg->text);
 
+        //color strings
+        struct colorString clr;
         //
         if (args.size() < 3) {
             bot.getApi().sendMessage(msg->chat->id, "Uso: /register <user> <pass>");
@@ -113,7 +122,8 @@ int main() {
 
         string err;
         if (register_user(user, pass, err)) {
-            bot.getApi().sendMessage(msg->chat->id, "Usuario registrado");
+          bot.getApi().sendMessage(msg->chat->id, "Usuario registrado");
+          cout << clr.orange << "[BOT] Usuario "<< user <<" registrado exitoxamente"<< clr.nc <<endl;
         } else {
             bot.getApi().sendMessage(msg->chat->id, "X: " + err);
         }
@@ -122,7 +132,8 @@ int main() {
     // /login <pass>: only "free"
     bot.getEvents().onCommand("login", [&](TgBot::Message::Ptr msg) {
         if (!msg || !msg->from) return;
-
+        //color strings
+        struct colorString clr;
         /*last part of the code that has been remplace
 
 	  extract the next to "/login "
@@ -144,22 +155,23 @@ int main() {
 	    bot.getApi().sendMessage(msg->chat->id,"Uso: `/login <@user> <contrasenia>`");
 	    return;
 	}
-
+    
 	const string user = args[1];
 	const string pass = args[2];
 
 	bool ok = verify_user(user, pass);
-	
+	cout << clr.orange << "[BOT] Verificacion de Usuario finalizada" <<clr.nc <<endl;
 	
         //optional: delete the message with the pass
         try{
-            bot.getApi().deleteMessage(msg->chat->id,msg->messageId);
+          bot.getApi().deleteMessage(msg->chat->id, msg->messageId);
+          cout << clr.green <<"[BOT] Verificacion correcta"<< clr.nc <<endl;
         }catch(const TgBot::TgException &e){
-            cerr << "[BOT]: error of Telegram API trying of delete message:  " << e.what() << endl;
+          cerr << clr.red << "[BOT]: error of Telegram API trying of delete message:  " << e.what() << clr.nc << endl;
         }catch(const exception &e){
-            cerr << "[SYSTEM]: error of server trying of delete message:  " << e.what() << endl;
+          cerr << clr.red << "[SYSTEM]: error of server trying of delete message:  " << e.what() << clr.nc << endl;
         }catch(...) {
-            cerr << "[UNDEFINED]: error of server trying of delete message:  " << endl;
+          cerr << clr.red << "[UNDEFINED]: error of server trying of delete message:  " << clr.nc << endl;
         
         };
 
@@ -233,7 +245,7 @@ int main() {
     bot.getEvents().onAnyMessage([&](TgBot::Message::Ptr msg){
         auto needUpload = waiting_archive[msg->chat->id] || caption_has_upload(msg);
 
-        auto save_via_file_id = [&](const string &file_id, const string &suggestedName, const string &prefix) {
+        auto save_via_file_id = [&](const string &file_id, const string &suggestedName, const string &prefix, const TgBot::Message::Ptr &msg) {
             
             auto f = bot.getApi().getFile(file_id);
             const std::string url = "https://api.telegram.org/file/bot" + bot.getToken() + "/" + f->filePath;
@@ -256,26 +268,32 @@ int main() {
         try {
             //busca si hay archivo por guardar
             if (needUpload) {
+
+              //photo
+                if (!msg->photo.empty()) {
+                  const std::shared_ptr<TgBot::PhotoSize> &largestPhoto = msg->photo.back();
+                  const string file_id = largestPhoto->fileId;
+                  
+                  save_via_file_id(file_id, "","photo",msg);
+                    
+                  cout <<"[BOT]: se encontro una foto que se guardara"<<endl;
+                    
+                  return;
+                }
+
                 //document
                 if (msg->document) {
-                    save_via_file_id(msg->document->fileId, msg->document->fileName,"doc");
+                  save_via_file_id(msg->document->fileId, msg->document->fileName,"doc",msg);
                     waiting_archive[msg->chat->id] = false;
                     cout <<"[BOT]: se encontro un archivo que se guardara"<<endl;
                     return;
                 }
 
-                //photo
-                if (msg->photo.empty()) {
-                    save_via_file_id(msg->photo.back()->fileId, "","photo");
-                    waiting_archive[msg->chat->id] = false;
-                    cout <<"[BOT]: se encontro una foto que se guardara"<<endl;
-                    
-                    return;
-                }
+              
 
                 //audio/voz
                 if (msg->audio) {
-                    save_via_file_id(msg->audio->fileId, msg->audio->fileName,"audio");
+                  save_via_file_id(msg->audio->fileId, msg->audio->fileName,"audio",msg);
                     waiting_archive[msg->chat->id] = false;
                     cout <<"[BOT]: se encontro audio que se guardara"<<endl;
                     
@@ -284,14 +302,14 @@ int main() {
 
                 
                 if (msg->voice) {
-                    save_via_file_id(msg->voice->fileId,"","voice");
+                  save_via_file_id(msg->voice->fileId,"","voice",msg);
                     waiting_archive[msg->chat->id] = false;
                     return;
                 }
                 //video
                
                 if (msg->video) {
-                    save_via_file_id(msg->video->fileId, "","video");
+                  save_via_file_id(msg->video->fileId, "","video",msg);
                     waiting_archive[msg->chat->id] = false;
                     cout <<"[BOT]: se encontro un video que se guardara"<<endl;
                     
@@ -314,10 +332,27 @@ int main() {
         }
             
     });
-    
+
+    int pollTimeout = 10;
+    if (argc > 1) {
+      struct colorString clr;
+      try {
+        pollTimeout = std::stoi(argv[1]); 
+            if (pollTimeout < 1) { // Mínimo sensato
+                pollTimeout = 10;
+            }
+        cout << clr.orange<< "[INFO] Usando timeout de Long Polling: " << pollTimeout << " segundos." << clr.nc <<endl;
+        } catch (const invalid_argument& e) {
+        cerr << clr.red << "[ERROR] El argumento del timeout no es un número válido. Usando valor por defecto (10s)." << clr.nc <<endl;
+        } catch (const out_of_range& e) {
+        cerr << clr.red << "[ERROR] El valor del timeout es demasiado grande. Usando valor por defecto (10s)." << clr.nc <<endl;
+        }
+    }
+
+    struct colorString clr;
     //long polling
-    TgBot::TgLongPoll long_poll(bot);
-    cout << "[BOT] -> runing correctly bot Telegram API" <<endl;
+    TgBot::TgLongPoll long_poll(bot,100,pollTimeout);
+    cout << clr.green <<"[BOT] -> runing correctly bot Telegram API"<<clr.nc << endl;
     while (true) {
         try {
             long_poll.start();
