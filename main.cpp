@@ -35,7 +35,23 @@ static vector<string> split_ws(const std::string &s) {
     
 }
 
-  
+//add a function of utility to send message in a thread
+inline void send_message_async(TgBot::Bot &bot,
+								int64_t chatId,
+								const string text,
+								const string &parseMode = "",
+								const shared_ptr<TgBot::LinkPreviewOptions> &linkPreview = nullptr)
+{ 	//create a new thread to not block the API	
+	thread t([&bot, chatId, text,parseMode, linkPreview](){
+		struct colorString clr;
+		try {
+				bot.getApi().sendMessage(chatId, text, linkPreview, nullptr, nullptrm parseMode);
+		} chatch(const exception &e) {
+			cerr << clr.red << "[BOT] <<THREAD ERROR>> Fallo el envio de mensajes asincrono: " << e.what() <<clr.nd <<endl;
+		}
+	});
+	t.detach();
+} 
 
 //main programing
 int main(int argc,char *argv[]) {
@@ -89,21 +105,15 @@ int main(int argc,char *argv[]) {
         auto lpo = make_shared<TgBot::LinkPreviewOptions>();
         lpo->isDisabled = true;
         
-        bot.getApi().sendMessage(msg->chat->id,           //chatId
-                                 "Bienvenido!!. Para usar el bot, inicia sesion: \n"
-				 "`/register <@usre> <pass>`\n"
-				 "`/login <@user> <contraseña>`\n"
-                                 "`/upload` - subir archivos\n"
-                                 "`/start` - presenta el bot\n", //text
-                                 lpo,                     //linkPreviewOptions
-                                 nullptr,                 //replyParameters
-                                 nullptr,                 //replyMarkup
-                                 "Markdown",              //parseMode
-                                 false,                   //disableNotifications
-                                 {},                      //entities
-                                 0,                       //messageThreadId
-                                 false,                   //protectContent
-                                 "");                     //messageEffictId
+        send_message_async(bot,
+						   msg->chat->id,           //chatId
+                           "Bienvenido!!. Para usar el bot, inicia sesion: \n"
+						   "`/register <@usre> <pass>`\n"
+				 		   "`/login <@user> <contraseña>`\n"
+                           "`/upload` - subir archivos\n"
+                           "`/start` - presenta el bot\n", //text
+                           "Markdown", //parseMode
+							lpo);
     });
 
     //register users password
