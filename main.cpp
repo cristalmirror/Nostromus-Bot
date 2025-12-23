@@ -17,10 +17,11 @@ using namespace std;
 namespace fs = std::filesystem;
 
 struct colorString {
-  string orange = "\033[38;5;208m";
-  string red = "\033[0;31m";
-  string green = "\033[0;32m";
-  string nc = "\033[0m";
+	string blue ="\033[0;34m";
+	string orange = "\033[38;5;208m";
+	string red = "\033[0;31m";
+	string green = "\033[0;32m";
+	string nc = "\033[0m";
 };
 
 struct Session{
@@ -45,9 +46,9 @@ inline void send_message_async(TgBot::Bot &bot,
 	thread t([&bot, chatId, text,parseMode, linkPreview](){
 		struct colorString clr;
 		try {
-				bot.getApi().sendMessage(chatId, text, linkPreview, nullptr, nullptrm parseMode);
-		} chatch(const exception &e) {
-			cerr << clr.red << "[BOT] <<THREAD ERROR>> Fallo el envio de mensajes asincrono: " << e.what() <<clr.nd <<endl;
+			bot.getApi().sendMessage(chatId, text, linkPreview, nullptr, nullptr, parseMode);
+		} catch(const exception &e) {
+			cerr << clr.red << "[BOT] <<THREAD ERROR>> Fallo el envio de mensajes asincrono: " << e.what() <<clr.nc <<endl;
 		}
 	});
 	t.detach();
@@ -57,11 +58,11 @@ inline void send_message_async(TgBot::Bot &bot,
 int main(int argc,char *argv[]) {
     /*take the token of the bot to BOT_TOKEN variable
      but isn't define using the last string in hardcoding */ 
-    string token = getenv("BOT_TOKEN") ? getenv("BOT_TOKEN") : "8035986148:AAFq1DEEMThtlia_MTfan61SS9WyRIZcRCg";
+    string token = getenv("BOT_TOKEN") ? getenv("BOT_TOKEN") : "8477690203:AAGX17DCFDsTcKAH4ZBEo-FocmrUUglCfFs";
     //make bot object
     TgBot::Bot bot(token);
     //password
-    const string PASSWORD = getenv("BOT_PASSWORD") ? getenv("BOT_PASSWORD") : "1234";;
+    const string PASSWORD = getenv("BOT_PASSWORD") ? getenv("BOT_PASSWORD") : "1234";
     
     // sessions and fail tryings
     unordered_map<int64_t,Session> sessions;
@@ -278,7 +279,7 @@ int main(int argc,char *argv[]) {
         try {
             //busca si hay archivo por guardar
             if (needUpload) {
-
+				struct colorString clr;
               //photo
                 if (!msg->photo.empty()) {
                   const std::shared_ptr<TgBot::PhotoSize> &largestPhoto = msg->photo.back();
@@ -286,7 +287,7 @@ int main(int argc,char *argv[]) {
                   
                   save_via_file_id(file_id, "","photo",msg);
                     
-                  cout <<"[BOT]: se encontro una foto que se guardara"<<endl;
+                  cout << clr.blue <<"[BOT]: se encontro una foto que se guardara" << clr.nc <<endl;
                     
                   return;
                 }
@@ -295,7 +296,7 @@ int main(int argc,char *argv[]) {
                 if (msg->document) {
                   save_via_file_id(msg->document->fileId, msg->document->fileName,"doc",msg);
                     waiting_archive[msg->chat->id] = false;
-                    cout <<"[BOT]: se encontro un archivo que se guardara"<<endl;
+                    cout << clr.blue <<"[BOT]: se encontro un archivo que se guardara" << clr.nc <<endl;
                     return;
                 }
 
@@ -305,7 +306,7 @@ int main(int argc,char *argv[]) {
                 if (msg->audio) {
                   save_via_file_id(msg->audio->fileId, msg->audio->fileName,"audio",msg);
                     waiting_archive[msg->chat->id] = false;
-                    cout <<"[BOT]: se encontro audio que se guardara"<<endl;
+                    cout << clr.blue <<"[BOT]: se encontro audio que se guardara" << clr.nc <<endl;
                     
                     return;
                 }
@@ -314,6 +315,7 @@ int main(int argc,char *argv[]) {
                 if (msg->voice) {
                   save_via_file_id(msg->voice->fileId,"","voice",msg);
                     waiting_archive[msg->chat->id] = false;
+                    cout << clr.blue <<"[BOT]: se encontro un mensaje de voz que se guardara" << clr.nc <<endl;
                     return;
                 }
                 //video
@@ -321,7 +323,7 @@ int main(int argc,char *argv[]) {
                 if (msg->video) {
                   save_via_file_id(msg->video->fileId, "","video",msg);
                     waiting_archive[msg->chat->id] = false;
-                    cout <<"[BOT]: se encontro un video que se guardara"<<endl;
+                    cout << clr.blue <<"[BOT]: se encontro un video que se guardara" << clr.nc <<endl;
                     
                     return;
                 
@@ -330,7 +332,7 @@ int main(int argc,char *argv[]) {
                 //si no vino archivo, recordatorio
                 if (!msg->text.empty() && msg->text != "/upload") {
                     bot.getApi().sendMessage(msg->chat->id,"Esperando algun archivo, Envialo o usa /upload de nuevo :) ");
-                    cout <<"[BOT]: esperamos un archivo"<<endl;
+                    cout << clr.blue <<"[BOT]: esperamos un archivo"<<endl;
                     
                 }
             }

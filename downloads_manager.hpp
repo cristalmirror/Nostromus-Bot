@@ -19,8 +19,11 @@ inline size_t write_to_file(void *ptr, size_t size, size_t nmemb, void *stream) 
 //download and from url and save in destpath
 inline bool download_with_curl(const std::string &url, const fs::path &destPath) {
     CURL *curl = curl_easy_init();
-
-    if(!curl) return false;
+	std::string blue ="\033[0;34m";
+	std::string inv_blue ="\033[7;34m";
+	std::string nc = "\033[0m";
+	
+	if(!curl) return false;
 
     fs::create_directories(destPath.parent_path()); //asegura carpeta
     std::ofstream out(destPath, std::ios::binary);
@@ -40,7 +43,7 @@ inline bool download_with_curl(const std::string &url, const fs::path &destPath)
     CURLcode res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
     out.close();
-    std::cout <<"[BOT]:  **descarga desde**  -->> "<< url <<std::endl;
+    std::cout << blue <<"[BOT]:  **descarga desde**  -->> "<< nc << std::endl <<inv_blue << url << nc <<std::endl;
     return (res == CURLE_OK);
     
     
