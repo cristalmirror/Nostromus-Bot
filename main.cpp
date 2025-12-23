@@ -332,7 +332,7 @@ int main(int argc,char *argv[]) {
                 //si no vino archivo, recordatorio
                 if (!msg->text.empty() && msg->text != "/upload") {
                     bot.getApi().sendMessage(msg->chat->id,"Esperando algun archivo, Envialo o usa /upload de nuevo :) ");
-                    cout << clr.blue <<"[BOT]: esperamos un archivo"<<endl;
+                    cout << clr.blue <<"[BOT]: esperamos un archivo"<< clr.nc <<endl;
                     
                 }
             }
